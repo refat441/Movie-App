@@ -1,16 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MovieCard from "../components/MovieCard";
 import "../css/Home.css";
+import { getPopularMovies } from "../services/Api";
 
 function Home() {
-  const movies = [
-    { id: 1, title: "Movie 1", release_date: "2020" },
-    { id: 2, title: "Movie 2", release_date: "2021" },
-    { id: 3, title: "Movie 3", release_date: "2022" },
-  ];
+  const [movies, setMovies] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadPopularMovies = async () => {
+      try {
+        const popularMovies = await getPopularMovies();
+        setMovies(popularMovies);
+      } catch (err) {
+        console.log(err);
+        setError("faild to fetch movies....");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadPopularMovies();
+  }, []);
 
   const [searchquery, setSearchQuery] = useState("");
-  const handleSearch = (e)=> {
+  const handleSearch = (e) => {
     e.preventDefault();
     alert(searchquery);
     setSearchQuery("");
@@ -26,13 +40,20 @@ function Home() {
           value={searchquery}
           onChange={(e) => setSearchQuery(e.target.value)}
         ></input>
-        <button type="submit" className="search_button">Search</button>
+        <button type="submit" className="search_button">
+          Search
+        </button>
       </form>
-      <div className="movies-grid">
-        {movies.map((movie) => (
-          <MovieCard key={movie.id} movie={movie} />
-        ))}
-      </div>
+      {error && <div className="error-message">{error}</div>}
+      {loading ? (
+        <div className="loading">Loading...</div>
+      ) : (
+        <div className="movies-grid">
+          {movies.map((movie) => (
+            <MovieCard key={movie.id} movie={movie} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
