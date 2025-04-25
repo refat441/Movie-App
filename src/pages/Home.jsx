@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import MovieCard from "../components/MovieCard";
 import "../css/Home.css";
-import { getPopularMovies } from "../services/Api";
+import { getPopularMovies, searchMovie } from "../services/Api";
 
 function Home() {
   const [movies, setMovies] = useState([]);
@@ -23,10 +23,25 @@ function Home() {
     loadPopularMovies();
   }, []);
 
-  const [searchquery, setSearchQuery] = useState("");
-  const handleSearch = (e) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const handleSearch = async (e) => {
     e.preventDefault();
-    alert(searchquery);
+
+    if (!searchQuery.trim()) return;
+    if (loading) return;
+    setLoading(true);
+
+    try {
+      const searchResults = await searchMovie(searchQuery);
+      setMovies(searchResults);
+      setError(null);
+    } catch (err) {
+      console.log(err);
+      setError("faild to fetch movies....");
+    } finally {
+      setLoading(false);
+    }
+
     setSearchQuery("");
   };
 
@@ -37,7 +52,7 @@ function Home() {
           type="text"
           placeholder="Search for movie..."
           className="search-input"
-          value={searchquery}
+          value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         ></input>
         <button type="submit" className="search_button">
